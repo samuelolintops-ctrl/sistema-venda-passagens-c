@@ -1,6 +1,9 @@
 # Arquivos binarios
 *.bin
 
+# Executavel
+main
+
 # Arquivos de texto e logs temporarios
 *.txt
 *.log
