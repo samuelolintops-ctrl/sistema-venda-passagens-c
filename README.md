@@ -6,4 +6,5 @@ Exercício proposto como parte da avaliação da disciplina de Linguagem de Prog
 ## Recursos:
 - Modularização de código (divisão de de ações via funções);
 - Persistência de dados via arquivos (dados permanecem mesmo após encerramento do programa);
-- Uso de funções de leitura e escrita binária.
+- Uso de funções de leitura e escrita binária;
+- Uso de struct para dados da poltrona.
