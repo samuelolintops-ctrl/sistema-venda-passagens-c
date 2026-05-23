@@ -41,7 +41,7 @@ Planejamento projeto
 
 #include <stdio.h>
 #include <stdlib.h>
-#define QTD_POLTRONAS 46
+#define QTD_POLTRONAS 48
 #define VALOR_PASS 35.90
 
 void limpa_tela(){
@@ -76,10 +76,12 @@ void espera_enter(){
 int int_positivo(char pfrase[]){
     /*
     Funcao que le e retorna um inteiro positivo. Em caso de erro fica no loop ate ler um valor valido.
+    parametro pfrase: frase cmoando para o usuario.
+    return: retorna um int valido.
     */
     int n, verifica;
     while(1){
-        printf("\n%s", pfrase);
+        printf("%s", pfrase);
         verifica = scanf("%d", &n);
         if(verifica == 1 && n > 0){
             limpa_buffer();
@@ -107,7 +109,7 @@ int menu_central(){
         "\n5. Consultar poltrona"
         "\n6. Passagens vendidas/total"
         "\n7. Sair");
-        opc = int_positivo("\nDigite sua opcao: ");
+        opc = int_positivo("\n\033[34mDigite sua opcao: \033[m");
         if(opc <= 7) break;
         printf("\n\033[31mErro: valor invalido. Digite novamente.\033[m");
         espera_enter();
@@ -139,6 +141,9 @@ typedef struct{
 char nome_arq[] = "poltronas_onibus.bin";
 
 void inic_bus(){
+    /*
+    Funcao que inicializa o onibus, liberando todas as poltronas.
+    */
     limpa_tela();
     printf("\n--- Operando Inicializar Onibus ---\n");
     char op;
@@ -167,38 +172,113 @@ void inic_bus(){
 }
 
 void visu_bus(){
+    /*
+    Funcao que exibe o status do onibus no formato exigido:
+    (1) (5)...
+    (2) (X)...
+
+    (4) (8)...
+    (3) (7)...
+    X indica que a poltrona ja foi vendida.
+    */
     limpa_tela();
-    printf("--- Operando Visualizar Onibus ---");
-    //FILE *stream_arq;
-    /*codigo*/
+    printf("\n--- Operando Visualizar Onibus ---\n");
+    FILE *stream_arq;
+    Poltrona p;
+    int cont = 0;
+    long deslocamento;
+    stream_arq = fopen(nome_arq, "rb");
+    if(verifica_arq(stream_arq) == 1){
+        printf("\nFalha na abertura dos dados, inicialize o onibus e tente novamente.");
+        espera_enter();
+        return;
+    }
+    for(int i = 1; i <= 4; i++){
+        int polt_inic;
+        // Condicionais para que as linhas estejam alinhadas como definido na proposta
+        if(i == 1) polt_inic = 1;
+        else if(i == 2) polt_inic = 2;
+        else if(i == 3) polt_inic = 4;
+        else if(i == 4) polt_inic = 3;
+        printf("| ");
+        for(int j = 1; j <= QTD_POLTRONAS / 4; j++){
+            fread(&p, sizeof(Poltrona), 1, stream_arq);
+            if(p.ocupacao == 0){
+                printf(" (%d) ", p.nmr_poltrona);
+            }
+            else{
+                printf(" (X) ");
+            }
+            deslocamento = sizeof(Poltrona) * 3;
+            fseek(stream_arq, deslocamento, SEEK_CUR);
+        }
+        printf(" |\n");
+        if(i == 2) printf("\n");
+        deslocamento = sizeof(Poltrona) * polt_inic;
+        fseek(stream_arq, deslocamento, SEEK_SET);
+    }
+    /*codigo precisando consertar*/
+    fclose(stream_arq);
     espera_enter();
 }
 
 void compra_pass(){
+    /*
+    
+    */
     limpa_tela();
     printf("--- Operando Compra de Passagem ---");
-    /*codigo*/
+    FILE *stream_arq;
+    Poltrona p;
+    int polt;
+    int polt_livre = 0;
+    stream_arq = fopen(nome_arq, "rb");
+    if(verifica_arq(stream_arq) == 1){
+        espera_enter();
+        return;
+    }
+    while(polt_livre == 0){
+        polt = int_positivo("\nDigite a poltrona que quer comprar: ");
+        if(polt > QTD_POLTRONAS){
+            printf("\n\033[31mNumero de poltrona invalida, digite novamente.\033[m");
+        }
+        else{
+            for(int i = 0; i < QTD_POLTRONAS; i++){
+                fread(&p, sizeof(Poltrona), 1, stream_arq);
+                if(p.nmr_poltrona == polt){
+                    if(p.ocupacao == 0){
+                        polt_livre = 1;
+                        break;
+                    }
+                    printf("\nAssento indisponivel, tente novamente.");
+                }
+            }
+        }
+    printf("\033[32mPoltrona de numero %d vendida com sucesso!\033[m", polt);
+    }
+    /*codigo incompleto: falta alterar o assento para 1 apos venda e somar o valor de venda ao total de vendidos*/
+    fclose(stream_arq);
     espera_enter();
 }
 
 void cancela_pass(){
     limpa_tela();
     printf("--- Operando Cancela Passagem ---");
-    /*codigo*/
+    /*codigo incompleto*/
     espera_enter();
 }
 
 void consulta_polt(){
     limpa_tela();
     printf("--- Operando Consultar Poltrona ---");
-    /*codigo*/
+    /*codigo incompleto*/
     espera_enter();
 }
 
 void relatorio_venda(){
     limpa_tela();
     printf("--- Operando Relatorio de Venda ---");
-    /*codigo*/
+    /*codigo incompleto*/
     espera_enter();
 }
 
