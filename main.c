@@ -73,9 +73,9 @@ void espera_enter(){
     getchar();
 }
 
-int int_positivo(char pfrase[]){
+int int_intervalo(char pfrase[], int min, int max){
     /*
-    Funcao que le e retorna um inteiro positivo. Em caso de erro fica no loop ate ler um valor valido.
+    Funcao que le e retorna um inteiro dentro do intervalo estabelecido. Em caso de erro fica no loop ate ler um valor valido.
     parametro pfrase: frase cmoando para o usuario.
     return: retorna um int valido.
     */
@@ -83,7 +83,7 @@ int int_positivo(char pfrase[]){
     while(1){
         printf("%s", pfrase);
         verifica = scanf("%d", &n);
-        if(verifica == 1 && n > 0){
+        if(verifica == 1 && n >= min && n <= max){
             limpa_buffer();
             break;
         }
@@ -109,10 +109,8 @@ int menu_central(){
         "\n5. Consultar poltrona"
         "\n6. Passagens vendidas/total"
         "\n7. Sair");
-        opc = int_positivo("\n\033[34mDigite sua opcao: \033[m");
-        if(opc <= 7) break;
-        printf("\n\033[31mErro: valor invalido. Digite novamente.\033[m");
-        espera_enter();
+        opc = int_intervalo("\n\033[34mDigite sua opcao: \033[m", 1, 7);
+        break;
     }
     return opc;
 }
@@ -137,10 +135,22 @@ typedef struct{
     int ocupacao; // 0 para livre e 1 para ocupado
 } Poltrona;
 
-// Definindo o nome do arquivo
-char nome_arq[] = "poltronas_onibus.bin";
+Poltrona busca_polt_ind(FILE *p_arq, int pnmr_polt){
+    /*
+    Funcao que faz uma busca de poltrona pelo seu numero. (Necessario abrir o arquivo no modo rb antes de usar essa funcao)
+    parametro p_arq: ponteiro do arquivo.
+    parametro pnmr_polt: numero da poltrona.
+    return: retorna a struct da poltrona.
+    */
+    Poltrona assento;
+    long desloc;
+    desloc = sizeof(Poltrona) * (pnmr_polt - 1);
+    fseek(p_arq, desloc, SEEK_SET);
+    fread(&assento, sizeof(Poltrona), 1, p_arq);
+    return assento;
+}
 
-void inic_bus(){
+void inic_bus(char nome_arq[], float *pvalor_tot, int *pass_tot){
     /*
     Funcao que inicializa o onibus, liberando todas as poltronas.
     */
@@ -167,11 +177,13 @@ void inic_bus(){
         fwrite(&p, sizeof(Poltrona), 1, stream_arq);
     }
     fclose(stream_arq);
-    printf("\nSistema de venda inicializado e poltronas livres.");
+    *pvalor_tot = 0;
+    *pass_tot = 0;
+    printf("\nSistema de venda inicializado, poltronas livres e valor arrecadado zerado.");
     espera_enter();
 }
 
-void visu_bus(){
+void visu_bus(char nome_arq[]){
     /*
     Funcao que exibe o status do onibus no formato exigido:
     (1) (5)...
@@ -207,7 +219,7 @@ void visu_bus(){
                 printf(" (%d) ", p.nmr_poltrona);
             }
             else{
-                printf(" (X) ");
+                printf(" (\033[31mX\033[m) ");
             }
             deslocamento = sizeof(Poltrona) * 3;
             fseek(stream_arq, deslocamento, SEEK_CUR);
@@ -217,19 +229,22 @@ void visu_bus(){
         deslocamento = sizeof(Poltrona) * polt_inic;
         fseek(stream_arq, deslocamento, SEEK_SET);
     }
-    /*codigo precisando consertar*/
+    /*codigo precisando consertar a impressao das duas linhas de baixo*/
     fclose(stream_arq);
     espera_enter();
 }
 
-void compra_pass(){
+void compra_pass(char nome_arq[], float *pvalor_tot, int *pass_tot){
     /*
-    
+    Funcao que opera a venda de passagens. Apos venda de uma poltrona desocupada muda no arquivo de operacao para ocupada.
     */
     limpa_tela();
-    printf("--- Operando Compra de Passagem ---");
+    printf("\n--- Operando Compra de Passagem ---\n");
     FILE *stream_arq;
     Poltrona p;
+    long deslocamento;
+    float valor_venda;
+    char sair;
     int polt;
     int polt_livre = 0;
     stream_arq = fopen(nome_arq, "rb");
@@ -237,74 +252,142 @@ void compra_pass(){
         espera_enter();
         return;
     }
+    // Loop enquanto nao se achauma poltrona desocupada
     while(polt_livre == 0){
-        polt = int_positivo("\nDigite a poltrona que quer comprar: ");
-        if(polt > QTD_POLTRONAS){
-            printf("\n\033[31mNumero de poltrona invalida, digite novamente.\033[m");
-        }
-        else{
-            for(int i = 0; i < QTD_POLTRONAS; i++){
-                fread(&p, sizeof(Poltrona), 1, stream_arq);
-                if(p.nmr_poltrona == polt){
-                    if(p.ocupacao == 0){
-                        polt_livre = 1;
-                        break;
-                    }
-                    printf("\nAssento indisponivel, tente novamente.");
-                }
+        polt = int_intervalo("\nDigite a poltrona que quer comprar: ", 1, QTD_POLTRONAS);
+        p = busca_polt_ind(stream_arq, polt);
+        // Aqui e onde ocorre a venda
+        if(p.ocupacao == 0){
+            valor_venda = p.valor;
+            p.ocupacao = 1;
+            polt_livre = 1;
+            fclose(stream_arq);
+            printf("\033[32mPoltrona de numero %d vendida com sucesso!\033[m", polt);
+            // Aqui e onde altero a poltrona do arquivo para ocupado
+            stream_arq = fopen(nome_arq, "rb+");
+            if(verifica_arq(stream_arq) == 1){
+                espera_enter();
+                return;
             }
+            deslocamento = sizeof(Poltrona) * (polt - 1);
+            fseek(stream_arq, deslocamento, SEEK_SET);
+            fwrite(&p, sizeof(Poltrona), 1, stream_arq);
+            *pvalor_tot = *pvalor_tot + valor_venda;
+            (*pass_tot)++;
+            break;
         }
-    printf("\033[32mPoltrona de numero %d vendida com sucesso!\033[m", polt);
+        // Caso o assento digitado ja foi vendido:
+        printf("\nAssento indisponivel, deseja repetir operacao com outro assento? (S/N) ");
+        scanf(" %c", &sair);
+        limpa_buffer();
+        if(sair == 'N' || sair == 'n') break;
     }
-    /*codigo incompleto: falta alterar o assento para 1 apos venda e somar o valor de venda ao total de vendidos*/
     fclose(stream_arq);
     espera_enter();
 }
 
-void cancela_pass(){
+void cancela_pass(char nome_arq[], float *pvalor_tot, int *pass_tot){
     limpa_tela();
-    printf("--- Operando Cancela Passagem ---");
-    /*codigo incompleto*/
+    printf("\n--- Operando Cancela Passagem ---\n");
+    FILE *stream_arq;
+    Poltrona p;
+    char sair;
+    int polt;
+    long deslocamento;
+    float valor_retorno;
+    stream_arq = fopen(nome_arq, "rb+");
+    if(verifica_arq(stream_arq) == 1){
+        espera_enter();
+        return;
+    }
+    while(1){
+        polt = int_intervalo("\nDigite o numero da poltrona para cancelar venda: ", 1, QTD_POLTRONAS);
+        p = busca_polt_ind(stream_arq, polt);
+        if(p.ocupacao == 1){
+            // liberando o assento
+            valor_retorno = p.valor;
+            p.ocupacao = 0;
+            deslocamento = sizeof(Poltrona) * (polt - 1);
+            fseek(stream_arq, deslocamento, SEEK_SET);
+            fwrite(&p, sizeof(Poltrona), 1, stream_arq);
+            printf("\n\033[32mPoltrona liberada com sucesso!\033[m");
+            *pvalor_tot = *pvalor_tot - valor_retorno;
+            (*pass_tot)--;
+            break;
+        }
+        printf("\nAssento livre, deseja repetir operacao com outro assento? (S/N) ");
+        scanf(" %c", &sair);
+        limpa_buffer();
+        if(sair == 'N' || sair == 'n') break;
+    }
+    fclose(stream_arq);
     espera_enter();
 }
 
-void consulta_polt(){
+void consulta_polt(char nome_arq[]){
+    /*
+    Funcao que procura por um assento e mostra se esta livre ou ocupada e se e janela ou corredor.
+    */
     limpa_tela();
-    printf("--- Operando Consultar Poltrona ---");
-    /*codigo incompleto*/
+    printf("\n--- Operando Consultar Poltrona ---\n");
+    FILE *stream_arq;
+    Poltrona p;
+    int nmr_polt;
+    stream_arq = fopen(nome_arq, "rb");
+    if(verifica_arq(stream_arq) == 1){
+        espera_enter();
+        return;
+    }
+    nmr_polt = int_intervalo("\nDigite o numero do assento: ", 1, QTD_POLTRONAS);
+    p = busca_polt_ind(stream_arq, nmr_polt);
+    fclose(stream_arq);
+    // Pares sao corredor e impares sao janela
+    if((p.nmr_poltrona % 2) == 0) printf("\nPoltrona: corredor");
+    else printf("\nPoltrona: janela");
+    // 1 ocupado e 0 desocupado
+    if(p.ocupacao == 1) printf("\nSituacao: \033[31mOCUPADO\033[m");
+    else printf("\nSituacao: \033[32mLIVRE\033[m");
     espera_enter();
 }
 
-void relatorio_venda(){
+void relatorio_venda(float *pvalor_tot, int *pass_tot){
+    /*
+    Emite um relatorio financeiro de quantas passagens foram vendidas e o valor total arrecadado.
+    */
     limpa_tela();
-    printf("--- Operando Relatorio de Venda ---");
-    /*codigo incompleto*/
+    printf("\n--- Operando Relatorio de Venda ---\n");
+    printf("\nTotal de passagens vendidas: %d.", *pass_tot);
+    printf("\nTotal arrecadado durante a operacao: RS%.2f.", *pvalor_tot);
     espera_enter();
 }
 
 int main(){
+    // Definindo o nome do arquivo
+    char nome_arq_arg[] = "poltronas_onibus.bin";
     int opcao;
+    int pass_vendidas = 0;
+    float faturamento = 0;
     do{
         opcao = menu_central();
         switch (opcao)
         {
         case 1:
-            inic_bus();
+            inic_bus(nome_arq_arg, &faturamento, &pass_vendidas);
             break;
         case 2:
-            visu_bus();
+            visu_bus(nome_arq_arg);
             break;
         case 3:
-            compra_pass();
+            compra_pass(nome_arq_arg, &faturamento, &pass_vendidas);
             break;
         case 4:
-            cancela_pass();
+            cancela_pass(nome_arq_arg, &faturamento, &pass_vendidas);
             break;
         case 5:
-            consulta_polt();
+            consulta_polt(nome_arq_arg);
             break;
         case 6:
-            relatorio_venda();
+            relatorio_venda(&faturamento, &pass_vendidas);
             break;
         }
     } while(opcao != 7);
