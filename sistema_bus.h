@@ -4,6 +4,9 @@
 #include <stdio.h>
 #define QTD_POLTRONAS 46
 #define VALOR_PASS 37.90
+// Definindo o nome do arquivo das poltronas e do faturamento
+#define NOME_ARQ "poltronas_onibus.bin"
+#define NOME_ARQ_FAT "caixa_onibus.bin"
 
 // Declaracao da struct que define a poltrona
 typedef struct{
@@ -11,11 +14,6 @@ typedef struct{
     float valor;
     int ocupacao; // 0 para livre e 1 para ocupado
 } Poltrona;
-
-// Definindo o nome do arquivo das poltronas
-char nome_arq[] = "poltronas_onibus.bin";
-// Definindo o nome do arquivo do faturamento
-char nome_arq_fat[] = "faturamento.txt";
 
 Poltrona busca_polt_ind(FILE *p_arq, int pnmr_polt);
 void inic_bus(float *pvalor_tot, int *pass_tot);

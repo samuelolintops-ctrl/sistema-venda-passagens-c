@@ -41,6 +41,10 @@ Planejamento projeto
     Para rodar o código:
     gcc main.c util.c sistema_bus.c -o m_programa
     ./m_programa
+
+    O que falta:
+    - Documentar funcoes;
+    - Implementar confirmação de compra
 */
 
 #include <stdio.h>
@@ -53,7 +57,7 @@ int main(){
     float faturamento;
     // Passando os valores de faturamento para variaveis
     FILE *arq_fat;
-    arq_fat = fopen(nome_arq_fat, "a+");
+    arq_fat = fopen(NOME_ARQ_FAT, "a+");
     if(verifica_arq(arq_fat) == 1){
         espera_enter();
         return 1;
@@ -88,6 +92,3 @@ int main(){
     printf("\nEncerrando secao. Ate mais!\n");
     return 0;
 }
-/*
-Falta: salvar faturamento e arrumar visualizar onibus
-*/

@@ -36,7 +36,7 @@ void inic_bus(float *pvalor_tot, int *pass_tot){
     }
     FILE *stream_arq;
     Poltrona p;
-    stream_arq = fopen(nome_arq, "wb");
+    stream_arq = fopen(NOME_ARQ, "wb");
     if((verifica_arq(stream_arq)) == 1) return;
     for(int i = 0; i < QTD_POLTRONAS; i++){
         p.nmr_poltrona = i + 1;
@@ -45,7 +45,8 @@ void inic_bus(float *pvalor_tot, int *pass_tot){
         fwrite(&p, sizeof(Poltrona), 1, stream_arq);
     }
     fclose(stream_arq);
-    stream_arq = fopen(nome_arq_fat, "w");
+    // Zerando faturamento
+    stream_arq = fopen(NOME_ARQ_FAT, "w");
     fprintf(stream_arq, "%f %d", 0.0, 0);
     if((verifica_arq(stream_arq)) == 1) return;
     fclose(stream_arq);
@@ -71,7 +72,7 @@ void visu_bus(){
     Poltrona p;
     int cont = 0;
     long deslocamento;
-    stream_arq = fopen(nome_arq, "rb");
+    stream_arq = fopen(NOME_ARQ, "rb");
     if(verifica_arq(stream_arq) == 1){
         printf("\nFalha na abertura dos dados, inicialize o onibus e tente novamente.");
         espera_enter();
@@ -101,7 +102,6 @@ void visu_bus(){
         printf(" |\n");
         if(i == 1) printf("\n");
     }
-    /*codigo precisando consertar a impressao das duas linhas de baixo*/
     fclose(stream_arq);
     espera_enter();
 }
@@ -119,7 +119,7 @@ void compra_pass(float *pvalor_tot, int *pass_tot){
     char sair;
     int polt;
     int polt_livre = 0;
-    stream_arq = fopen(nome_arq, "rb+");
+    stream_arq = fopen(NOME_ARQ, "rb+");
     if(verifica_arq(stream_arq) == 1){
         espera_enter();
         return;
@@ -150,7 +150,7 @@ void compra_pass(float *pvalor_tot, int *pass_tot){
     }
     fclose(stream_arq);
     // Gravando faturamento
-    stream_arq = fopen(nome_arq_fat, "w");
+    stream_arq = fopen(NOME_ARQ_FAT, "w");
     fprintf(stream_arq, "%f %d", *pvalor_tot, *pass_tot);
     fclose(stream_arq);
     espera_enter();
@@ -165,7 +165,7 @@ void cancela_pass(float *pvalor_tot, int *pass_tot){
     int polt;
     long deslocamento;
     float valor_retorno;
-    stream_arq = fopen(nome_arq, "rb+");
+    stream_arq = fopen(NOME_ARQ, "rb+");
     if(verifica_arq(stream_arq) == 1){
         espera_enter();
         return;
@@ -192,7 +192,7 @@ void cancela_pass(float *pvalor_tot, int *pass_tot){
     }
     fclose(stream_arq);
     // Gravando faturamento
-    stream_arq = fopen(nome_arq_fat, "w");
+    stream_arq = fopen(NOME_ARQ_FAT, "w");
     fprintf(stream_arq, "%f %d", *pvalor_tot, *pass_tot);
     fclose(stream_arq);
     espera_enter();
@@ -207,7 +207,7 @@ void consulta_polt(){
     FILE *stream_arq;
     Poltrona p;
     int nmr_polt;
-    stream_arq = fopen(nome_arq, "rb");
+    stream_arq = fopen(NOME_ARQ, "rb");
     if(verifica_arq(stream_arq) == 1){
         espera_enter();
         return;
