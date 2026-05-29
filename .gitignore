@@ -3,6 +3,7 @@
 
 # Executavel
 main
+m_programa
 
 # Arquivos de texto e logs temporarios
 *.txt
