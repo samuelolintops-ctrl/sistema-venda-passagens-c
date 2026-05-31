@@ -2,11 +2,11 @@
 #define SISTEMA_BUS_H
 
 #include <stdio.h>
-#define QTD_POLTRONAS 46
-#define VALOR_PASS 37.90
+#define QTD_POLTRONAS 46 // Quantidade de poltronas solicitada
+#define VALOR_PASS 37.90 // Valor qualquer de uma passagem
 // Definindo o nome do arquivo das poltronas e do faturamento
 #define NOME_ARQ "poltronas_onibus.bin"
-#define NOME_ARQ_FAT "caixa_onibus.bin"
+#define NOME_ARQ_FAT "caixa_onibus.txt"
 
 // Declaracao da struct que define a poltrona
 typedef struct{

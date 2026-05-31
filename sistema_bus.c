@@ -21,6 +21,8 @@ Poltrona busca_polt_ind(FILE *p_arq, int pnmr_polt){
 void inic_bus(float *pvalor_tot, int *pass_tot){
     /*
     Funcao que inicializa o onibus, liberando todas as poltronas.
+    parametro pvalor_tot: valor total arrecadado com as vendas das poltronas.
+    parametro pass_tot: total de passagens vendidas.
     */
     limpa_tela();
     printf("\n--- Operando Inicializar Onibus ---\n");
@@ -52,7 +54,7 @@ void inic_bus(float *pvalor_tot, int *pass_tot){
     fclose(stream_arq);
     *pvalor_tot = 0;
     *pass_tot = 0;
-    printf("\nSistema de venda inicializado, poltronas livres e valor arrecadado zerado.");
+    printf("\nSistema de venda inicializado, poltronas livres e valor arrecadado zerado.\n");
     espera_enter();
 }
 
@@ -74,7 +76,7 @@ void visu_bus(){
     long deslocamento;
     stream_arq = fopen(NOME_ARQ, "rb");
     if(verifica_arq(stream_arq) == 1){
-        printf("\nFalha na abertura dos dados, inicialize o onibus e tente novamente.");
+        printf("\nFalha na abertura dos dados, inicialize o onibus e tente novamente.\n");
         espera_enter();
         return;
     }
@@ -109,6 +111,8 @@ void visu_bus(){
 void compra_pass(float *pvalor_tot, int *pass_tot){
     /*
     Funcao que opera a venda de passagens. Apos venda de uma poltrona desocupada muda no arquivo de operacao para ocupada.
+    parametro pvalor_tot: valor total arrecadado com as vendas das poltronas.
+    parametro pass_tot: total de passagens vendidas.
     */
     limpa_tela();
     printf("\n--- Operando Compra de Passagem ---\n");
@@ -125,15 +129,27 @@ void compra_pass(float *pvalor_tot, int *pass_tot){
         return;
     }
     // Loop enquanto nao se achauma poltrona desocupada
-    while(polt_livre == 0){
+    while(1){
         polt = int_intervalo("\nDigite a poltrona que quer comprar: ", 1, QTD_POLTRONAS);
         p = busca_polt_ind(stream_arq, polt);
         // Aqui e onde ocorre a venda
         if(p.ocupacao == 0){
             valor_venda = p.valor;
             p.ocupacao = 1;
-            polt_livre = 1;
-            printf("\033[32mPoltrona de numero %d vendida com sucesso!\033[m", polt);
+            printf("Valor da passagem: RS%.2f.", p.valor);
+            if((p.nmr_poltrona % 2) == 0) printf("\nPoltrona: corredor");
+            else printf("\nPoltrona: janela");
+            // Onde o usuario pode decidir se deseja efetuar a compra ou nao
+            printf("\nConfirma a compra? (S/N) ");
+            scanf(" %c", &sair);
+            limpa_buffer();
+            // Caso nao queira prosseguir sai do loop
+            if(sair == 'N' || sair == 'n'){
+                printf("\nCancelando a compra.\n");
+                break;
+
+            }
+            printf("\033[32mPoltrona de numero %d vendida com sucesso!\033[m\n", polt);
             // Aqui e onde altero a poltrona do arquivo para ocupado
             deslocamento = sizeof(Poltrona) * (polt - 1);
             fseek(stream_arq, deslocamento, SEEK_SET);
@@ -157,6 +173,11 @@ void compra_pass(float *pvalor_tot, int *pass_tot){
 }
 
 void cancela_pass(float *pvalor_tot, int *pass_tot){
+    /*
+    Funcao que opera o cancelamento de alguma passagem vendida. Apos cancelamento de uma venda muda o assento para desocupado no arquivo.
+    parametro pvalor_tot: valor total arrecadado com as vendas das poltronas.
+    parametro pass_tot: total de passagens vendidas.
+    */
     limpa_tela();
     printf("\n--- Operando Cancela Passagem ---\n");
     FILE *stream_arq;
@@ -180,7 +201,7 @@ void cancela_pass(float *pvalor_tot, int *pass_tot){
             deslocamento = sizeof(Poltrona) * (polt - 1);
             fseek(stream_arq, deslocamento, SEEK_SET);
             fwrite(&p, sizeof(Poltrona), 1, stream_arq);
-            printf("\n\033[32mPoltrona liberada com sucesso!\033[m");
+            printf("\n\033[32mPoltrona liberada com sucesso!\033[m\n");
             *pvalor_tot = *pvalor_tot - valor_retorno;
             (*pass_tot)--;
             break;
@@ -219,18 +240,20 @@ void consulta_polt(){
     if((p.nmr_poltrona % 2) == 0) printf("\nPoltrona: corredor");
     else printf("\nPoltrona: janela");
     // 1 ocupado e 0 desocupado
-    if(p.ocupacao == 1) printf("\nSituacao: \033[31mOCUPADO\033[m");
-    else printf("\nSituacao: \033[32mLIVRE\033[m");
+    if(p.ocupacao == 1) printf("\nSituacao: \033[31mOCUPADO\033[m\n");
+    else printf("\nSituacao: \033[32mLIVRE\033[m\n");
     espera_enter();
 }
 
 void relatorio_venda(float *pvalor_tot, int *pass_tot){
     /*
     Emite um relatorio financeiro de quantas passagens foram vendidas e o valor total arrecadado.
+    parametro pvalor_tot: valor total arrecadado com as vendas das poltronas.
+    parametro pass_tot: total de passagens vendidas.
     */
     limpa_tela();
     printf("\n--- Operando Relatorio de Venda ---\n");
     printf("\nTotal de passagens vendidas: %d.", *pass_tot);
-    printf("\nTotal arrecadado durante a operacao: RS%.2f.", *pvalor_tot);
+    printf("\nTotal arrecadado durante a operacao: RS%.2f.\n", *pvalor_tot);
     espera_enter();
 }
