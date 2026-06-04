@@ -195,6 +195,10 @@ void cancela_pass(float *pvalor_tot, int *pass_tot){
         polt = int_intervalo("\nDigite o numero da poltrona para cancelar venda: ", 1, QTD_POLTRONAS);
         p = busca_polt_ind(stream_arq, polt);
         if(p.ocupacao == 1){
+            printf("\nConfirma cancelamento? (S/N) ");
+            scanf(" %c", &sair);
+            limpa_buffer();
+            if(sair == 'N' || sair == 'n') break;
             // liberando o assento
             valor_retorno = p.valor;
             p.ocupacao = 0;
