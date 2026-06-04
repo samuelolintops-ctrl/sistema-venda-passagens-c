@@ -1,50 +1,8 @@
 /*
-EXERCICIO (Credito 2 - 10,0 pontos) => Proposta do projeto
-
-Venda de passagens:
-Imagine um sistema de venda de passagens que pode ter um menu com as seguintes funcoes
-(I) - Inicializar onibus: Todas as poltronas livres e 0 vendidas
-(V) - Visualizar onibus (formato onibus): Mostrar layout do onibus com livres e ocupadas
-(E) - Vender passagem: Marcar poltrona
-(C) - Cancelar passagem: Liberar poltrona
-(S) - Consultar poltrona: livre/ocupada; janela/corredor
-(P) - Passagens vendidas/total: emite um relatorio c/ total de vendas do onibus
-
-Criterios:
-1. O menu e as funcionalidades precisam ser por funcoes
-2. Numero maximo integrantes: 3
-3. Data submissao: 09/06
-
-Planejamento projeto
-- Usar um arquivo poltronas_onibus.bin para guardar as poltronas
-- Cada poltrona sera uma struct:
-    typedef Struct{
-        float valor;
-        int ocupacao;
-    }Poltona;
-- Funcoes do projeto:
-    Modulo util:
-    - void limpa_tela();
-    - void limpa_buffer();
-    - void espera_enter();
-    - int int_positivo(char pfrase[]);
-    - void mostra_menu();
-    - int verifica_arq(FILE *pont_arq);
-    Modulo venda_passagem:
-    - void inic_bus();
-    - void visu_bus();
-    - void compra_pass();
-    - void cancela_pass();
-    - void consulta_polt();
-    - void relatorio_venda();
-
+EXERCICIO (Credito 2 - 10,0 pontos)
     Para rodar o código:
     gcc main.c util.c sistema_bus.c -o m_programa
     ./m_programa
-
-    O que falta:
-    - Documentar funcoes;
-    - Implementar confirmação de compra
 */
 
 #include <stdio.h>
